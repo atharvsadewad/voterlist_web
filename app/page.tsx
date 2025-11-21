@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// 🟦 DEFINE JSON STRUCTURE (VERY IMPORTANT)
+// STRUCTURE of each voter (Ward 8)
 interface Voter {
   serial_no: number;
   voter_id: string;
@@ -18,47 +18,68 @@ interface Voter {
 
 export default function Page() {
   const [query, setQuery] = useState("");
-  const [voters, setVoters] = useState<Voter[]>([]);      // FIXED
-  const [filtered, setFiltered] = useState<Voter[]>([]);  // FIXED
-  const [selected, setSelected] = useState<Voter | null>(null); // FIXED
+  const [voters, setVoters] = useState<Voter[]>([]);
+  const [filtered, setFiltered] = useState<Voter[]>([]);
+  const [selected, setSelected] = useState<Voter | null>(null);
 
-  // Load JSON from public/voters.json
+  // Load JSON
   useEffect(() => {
     fetch("/voters.json")
       .then((res) => res.json())
       .then((data) => setVoters(data));
   }, []);
 
-  // Filter logic
+  // UNIVERSAL CLEANER FUNCTION (fixes mobile mismatches)
+  const normalize = (str: string) =>
+    str
+      .toLowerCase()
+      .replace(/\s+/g, "")
+      .replace(/-/g, "")
+      .trim();
+
+  // FILTER LOGIC
   useEffect(() => {
     if (!query.trim()) {
       setFiltered([]);
       return;
     }
 
-    const q = query.toLowerCase();
+    const q = normalize(query);
 
-    const results = voters.filter((v) =>
-      v.name_marathi.toLowerCase().includes(q) ||
-      v.relation_name_marathi.toLowerCase().includes(q) ||
-      v.house_no.toLowerCase().includes(q)
-    );
+    const results = voters.filter((v) => {
+      return (
+        normalize(v.name_marathi).includes(q) ||
+        normalize(v.relation_name_marathi).includes(q) ||
+        normalize(v.house_no).includes(q) ||
+        normalize(v.voter_id).includes(q)
+      );
+    });
 
     setFiltered(results);
   }, [query, voters]);
 
+  // PRINT
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 px-6 py-10">
-      <h1 className="text-3xl font-semibold text-gray-800 mb-6">
-        Voter Search
+      {/* MAIN TITLE */}
+      <h1 className="text-3xl font-bold text-gray-800 mb-2">
+        Ward 8 – Voter List
       </h1>
 
-      {/* Search Box */}
+      <p className="text-gray-600 mb-6">
+        Search by नाव / घर क्रमांक / नाते / EPIC
+      </p>
+
+      {/* SEARCH */}
       <motion.input
         layout
         type="text"
-        placeholder="Search by नाव / घर क्रमांक / नाते…"
-        className="w-full p-4 mb-6 rounded-xl bg-white shadow focus:ring-2
+        placeholder="Type to search…"
+        className="w-full p-4 mb-4 rounded-xl bg-white shadow focus:ring-2
                    focus:ring-blue-500 outline-none text-gray-800"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -66,7 +87,18 @@ export default function Page() {
         animate={{ opacity: 1, y: 0 }}
       />
 
-      {/* Results */}
+      {/* PRINT BUTTON */}
+      {filtered.length > 0 && (
+        <button
+          onClick={handlePrint}
+          className="mb-6 px-4 py-2 bg-green-600 text-white rounded-lg shadow 
+                     hover:bg-green-700 print:hidden"
+        >
+          Print Results
+        </button>
+      )}
+
+      {/* RESULTS */}
       <AnimatePresence>
         {filtered.length > 0 && (
           <motion.div
@@ -81,17 +113,34 @@ export default function Page() {
                 key={voter.voter_id}
                 layout
                 className="p-4 bg-white rounded-xl shadow cursor-pointer border
-                           hover:bg-blue-50 transition-all"
+                           hover:bg-blue-50 transition-all
+                           print:border print:bg-white print:shadow-none"
                 onClick={() => setSelected(voter)}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <h2 className="text-lg font-semibold text-gray-700">
-                  {voter.name_marathi}
-                </h2>
-                <p className="text-gray-500 text-sm">
-                  घर क्रमांक: {voter.house_no} • वय: {voter.age}
-                </p>
+                {/* Normal (Screen) view */}
+                <div className="print:hidden">
+                  <h2 className="text-lg font-semibold text-gray-700">
+                    {voter.name_marathi}
+                  </h2>
+
+                  <p className="text-gray-500 text-sm">
+                    घर क्रमांक: {voter.house_no} • वय: {voter.age}
+                  </p>
+                </div>
+
+                {/* Print view */}
+                <div className="hidden print:block text-sm">
+                  <p><b>Name:</b> {voter.name_marathi}</p>
+                  <p><b>House:</b> {voter.house_no}</p>
+                  <p><b>Relation:</b> {voter.relation_name_marathi}</p>
+                  <p><b>Relation Type:</b> {voter.relation_type}</p>
+                  <p><b>Age:</b> {voter.age}</p>
+                  <p><b>Gender:</b> {voter.gender}</p>
+                  <p><b>EPIC:</b> {voter.voter_id}</p>
+                  <p><b>Serial No:</b> {voter.serial_no}</p>
+                </div>
               </motion.div>
             ))}
           </motion.div>
@@ -122,12 +171,11 @@ export default function Page() {
               <div className="space-y-2 text-gray-700">
                 <p><b>घर क्रमांक:</b> {selected.house_no}</p>
                 <p><b>नाते:</b> {selected.relation_name_marathi}</p>
+                <p><b>नाते प्रकार:</b> {selected.relation_type}</p>
                 <p><b>वय:</b> {selected.age}</p>
+                <p><b>लिंग:</b> {selected.gender}</p>
                 <p><b>EPIC:</b> {selected.voter_id}</p>
-                <p><b>अ. क्र.:</b> {selected.serial_no}</p>
-                {selected.source_page && (
-                  <p><b>पृष्ठ:</b> {selected.source_page}</p>
-                )}
+                <p><b>अनुक्रमांक:</b> {selected.serial_no}</p>
               </div>
 
               <button
