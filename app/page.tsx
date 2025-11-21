@@ -22,7 +22,7 @@ export default function Page() {
   const [selected, setSelected] = useState<Voter | null>(null);
 
   useEffect(() => {
-    fetch("/voters.json")
+    fetch(`/voters.json?t=${Date.now()}`)
       .then((res) => res.json())
       .then((data) => setVoters(data));
   }, []);
