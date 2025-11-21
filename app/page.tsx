@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// STRUCTURE of each voter (Ward 8)
 interface Voter {
   serial_no: number;
   voter_id: string;
@@ -22,64 +21,43 @@ export default function Page() {
   const [filtered, setFiltered] = useState<Voter[]>([]);
   const [selected, setSelected] = useState<Voter | null>(null);
 
-  // Load JSON
   useEffect(() => {
     fetch("/voters.json")
       .then((res) => res.json())
       .then((data) => setVoters(data));
   }, []);
 
-  // UNIVERSAL CLEANER FUNCTION (fixes mobile mismatches)
-  const normalize = (str: string) =>
-    str
-      .toLowerCase()
-      .replace(/\s+/g, "")
-      .replace(/-/g, "")
-      .trim();
-
-  // FILTER LOGIC
+  // SEARCH FIXED → WORKS ON MOBILE & DESKTOP
   useEffect(() => {
-    if (!query.trim()) {
-      setFiltered([]);
-      return;
-    }
+    if (!query.trim()) return setFiltered([]);
 
-    const q = normalize(query);
+    const q = query.trim().toLowerCase();
 
-    const results = voters.filter((v) => {
-      return (
-        normalize(v.name_marathi).includes(q) ||
-        normalize(v.relation_name_marathi).includes(q) ||
-        normalize(v.house_no).includes(q) ||
-        normalize(v.voter_id).includes(q)
-      );
-    });
+    const results = voters.filter((v) =>
+      v.name_marathi.toLowerCase().includes(q)
+    );
 
     setFiltered(results);
   }, [query, voters]);
 
-  // PRINT
   const handlePrint = () => {
     window.print();
   };
 
   return (
     <div className="min-h-screen bg-gray-50 px-6 py-10">
-      {/* MAIN TITLE */}
-      <h1 className="text-3xl font-bold text-gray-800 mb-2">
-        Ward 8 – Voter List
+
+      {/* TITLE */}
+      <h1 className="text-3xl font-semibold text-gray-800 mb-6 text-center">
+        🗳️ Ward No. 8 — Voter Search
       </h1>
 
-      <p className="text-gray-600 mb-6">
-        Search by नाव / घर क्रमांक / नाते / EPIC
-      </p>
-
-      {/* SEARCH */}
+      {/* SEARCH BAR */}
       <motion.input
         layout
         type="text"
-        placeholder="Type to search…"
-        className="w-full p-4 mb-4 rounded-xl bg-white shadow focus:ring-2
+        placeholder="Search नाव / आडनाव…"
+        className="w-full p-4 mb-6 rounded-xl bg-white shadow focus:ring-2 
                    focus:ring-blue-500 outline-none text-gray-800"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -98,48 +76,45 @@ export default function Page() {
         </button>
       )}
 
-      {/* RESULTS */}
+      {/* SEARCH RESULTS */}
       <AnimatePresence>
         {filtered.length > 0 && (
           <motion.div
             layout
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="space-y-3"
+            className="space-y-3 print:grid print:grid-cols-2 print:gap-4"
           >
             {filtered.map((voter) => (
               <motion.div
                 key={voter.voter_id}
                 layout
-                className="p-4 bg-white rounded-xl shadow cursor-pointer border
-                           hover:bg-blue-50 transition-all
-                           print:border print:bg-white print:shadow-none"
+                className="p-4 bg-white rounded-xl shadow border cursor-pointer 
+                           hover:bg-blue-50 transition-all print:shadow-none print:border print:text-sm"
                 onClick={() => setSelected(voter)}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                {/* Normal (Screen) view */}
+                {/* NORMAL SCREEN VIEW */}
                 <div className="print:hidden">
                   <h2 className="text-lg font-semibold text-gray-700">
                     {voter.name_marathi}
                   </h2>
-
                   <p className="text-gray-500 text-sm">
                     घर क्रमांक: {voter.house_no} • वय: {voter.age}
                   </p>
                 </div>
 
-                {/* Print view */}
-                <div className="hidden print:block text-sm">
-                  <p><b>Name:</b> {voter.name_marathi}</p>
-                  <p><b>House:</b> {voter.house_no}</p>
-                  <p><b>Relation:</b> {voter.relation_name_marathi}</p>
-                  <p><b>Relation Type:</b> {voter.relation_type}</p>
-                  <p><b>Age:</b> {voter.age}</p>
-                  <p><b>Gender:</b> {voter.gender}</p>
+                {/* FULL PRINT DETAILS */}
+                <div className="hidden print:block leading-5">
+                  <p><b>नाव:</b> {voter.name_marathi}</p>
+                  <p><b>घर क्रमांक:</b> {voter.house_no}</p>
+                  <p><b>नाते:</b> {voter.relation_type}</p>
+                  <p><b>नाव (नाते):</b> {voter.relation_name_marathi}</p>
+                  <p><b>वय:</b> {voter.age}</p>
+                  <p><b>लिंग:</b> {voter.gender}</p>
                   <p><b>EPIC:</b> {voter.voter_id}</p>
-                  <p><b>Serial No:</b> {voter.serial_no}</p>
+                  <p><b>अनुक्रमांक:</b> {voter.serial_no}</p>
                 </div>
               </motion.div>
             ))}
@@ -151,7 +126,7 @@ export default function Page() {
       <AnimatePresence>
         {selected && (
           <motion.div
-            className="fixed inset-0 bg-black/50 backdrop-blur flex items-center justify-center p-4 z-50"
+            className="fixed inset-0 bg-black/50 backdrop-blur flex items-center justify-center p-4 z-50 print:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -170,8 +145,8 @@ export default function Page() {
 
               <div className="space-y-2 text-gray-700">
                 <p><b>घर क्रमांक:</b> {selected.house_no}</p>
-                <p><b>नाते:</b> {selected.relation_name_marathi}</p>
-                <p><b>नाते प्रकार:</b> {selected.relation_type}</p>
+                <p><b>नाते:</b> {selected.relation_type}</p>
+                <p><b>नाव (नाते):</b> {selected.relation_name_marathi}</p>
                 <p><b>वय:</b> {selected.age}</p>
                 <p><b>लिंग:</b> {selected.gender}</p>
                 <p><b>EPIC:</b> {selected.voter_id}</p>
