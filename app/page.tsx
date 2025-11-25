@@ -41,28 +41,17 @@ export default function Page() {
     setFiltered(results);
   };
 
-  // 🔥 FIXED PRINT FUNCTION — Only print results, not full page
-  const handlePrint = () => {
-    const printArea = document.getElementById("print-area");
+const handlePrint = () => {
+  const printArea = document.getElementById("print-area");
 
-    if (!printArea) return;
+  if (!printArea) return;
 
-    const originalBody = document.body.innerHTML;
-    const printContent = printArea.innerHTML;
-
-    // Replace body with only results area
-    document.body.innerHTML = `
-      <div style="padding: 20px; font-size: 14px;">
-        ${printContent}
-      </div>
-    `;
-
+  // Force a tiny delay so DOM updates before print
+  setTimeout(() => {
     window.print();
+  }, 150);
+};
 
-    // Restore original page
-    document.body.innerHTML = originalBody;
-    window.location.reload();
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 px-6 py-10">
