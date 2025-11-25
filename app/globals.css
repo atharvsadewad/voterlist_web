@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* ——— THEME ——— */
+/* Normal theme */
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -26,52 +26,62 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* ——————————————————————————————————————— */
-/*               FINAL PRINT FIX              */
-/* ——————————————————————————————————————— */
 
+/* -----------------------------------------------------
+   🔥 FINAL PRINT FIX — No page breaks + 2 columns
+------------------------------------------------------ */
 @media print {
 
-  /* Prevent full page printing */
+  /* REMOVE ALL default browser margins */
+  @page {
+    margin: 0 !important;
+  }
+
   body {
     margin: 0 !important;
     padding: 0 !important;
     background: white !important;
-
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
-  /* PRINT ONLY THE VOTER LIST */
+  /* Hide EVERYTHING except the print area */
+  body * {
+    visibility: hidden !important;
+  }
+
+  #print-area, #print-area * {
+    visibility: visible !important;
+  }
+
+  /* FORCE print area to full width */
   #print-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
-    gap: 14px !important;
+    gap: 16px !important;
+
     padding: 20px !important;
   }
 
-  /* Each Voter Card */
+  /* EACH voter box */
   #print-area > div {
-    background: white !important;
-    border: 1px solid black !important;
-    border-radius: 8px !important;
+    border: 1px solid #000 !important;
     padding: 12px !important;
-    font-size: 14px !important;
+    background: white !important;
+    border-radius: 8px !important;
 
-    /* prevent page breaks */
+    /* prevents page breaks inside */
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }
 
-  /* HIDE everything else */
-  .print\:hidden,
-  header,
-  nav,
-  footer,
-  .no-print,
-  .modal,
-  .backdrop {
+  /* Modal never prints */
+  .modal, .backdrop {
     display: none !important;
-    visibility: hidden !important;
   }
 }
