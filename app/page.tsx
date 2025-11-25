@@ -21,15 +21,15 @@ export default function Page() {
   const [filtered, setFiltered] = useState<Voter[]>([]);
   const [selected, setSelected] = useState<Voter | null>(null);
 
-  // Load JSON once
+  // Load JSON with cache-busting
   useEffect(() => {
     fetch(`/voters.json?t=${Date.now()}`)
       .then((res) => res.json())
       .then((data) => setVoters(data));
   }, []);
 
-  // 🔍 SEARCH ONLY WHEN BUTTON CLICKED
-  const handleSearch = () => {
+  // Manual Search (AFTER button click)
+  const runSearch = () => {
     if (!query.trim()) return setFiltered([]);
 
     const q = query.trim().toLowerCase();
@@ -41,18 +41,26 @@ export default function Page() {
     setFiltered(results);
   };
 
-  // PRINT
   const handlePrint = () => window.print();
 
   return (
     <div className="min-h-screen bg-gray-50 px-6 py-10">
 
+      {/* HERO IMAGE */}
+      <div className="w-full mb-8">
+        <img
+          src="/hero.jpg"
+          alt="Ward 8 Banner"
+          className="w-full rounded-xl shadow-md"
+        />
+      </div>
+
       {/* TITLE */}
-      <h1 className="text-3xl font-semibold text-gray-800 mb-6 text-center">
+      <h1 className="text-3xl font-semibold text-gray-800 mb-4 text-center">
         🗳️ Ward No. 8 — Voter Search
       </h1>
 
-      {/* SEARCH BAR */}
+      {/* SEARCH BAR + BUTTON */}
       <div className="flex gap-3 mb-6">
         <motion.input
           layout
@@ -66,15 +74,28 @@ export default function Page() {
           animate={{ opacity: 1, y: 0 }}
         />
 
-        {/* SEARCH BUTTON */}
         <button
-          onClick={handleSearch}
-          className="px-5 py-4 bg-blue-600 text-white rounded-xl shadow 
-                     hover:bg-blue-700"
+          onClick={runSearch}
+          className="px-4 py-2 bg-blue-600 text-white rounded-xl shadow hover:bg-blue-700"
         >
           Search
         </button>
       </div>
+
+      {/* SEE ALL VOTERS */}
+      <button
+        onClick={() => setFiltered(voters)}
+        className="mb-4 px-4 py-2 bg-purple-600 text-white rounded-lg shadow hover:bg-purple-700"
+      >
+        See All Voters ({voters.length})
+      </button>
+
+      {/* RESULT COUNT */}
+      {filtered.length > 0 && (
+        <p className="text-gray-700 font-medium mb-3">
+          🔎 Results Found: {filtered.length}
+        </p>
+      )}
 
       {/* PRINT BUTTON */}
       {filtered.length > 0 && (
@@ -87,7 +108,7 @@ export default function Page() {
         </button>
       )}
 
-      {/* RESULTS */}
+      {/* RESULTS LIST */}
       <AnimatePresence>
         {filtered.length > 0 && (
           <motion.div
@@ -101,13 +122,12 @@ export default function Page() {
                 key={voter.voter_id}
                 layout
                 className="p-4 bg-white rounded-xl shadow border cursor-pointer 
-                           hover:bg-blue-50 transition-all print:shadow-none 
-                           print:border print:text-sm"
+                           hover:bg-blue-50 transition-all print:shadow-none print:border print:text-sm"
                 onClick={() => setSelected(voter)}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                {/* NORMAL VIEW */}
+                {/* Normal */}
                 <div className="print:hidden">
                   <h2 className="text-lg font-semibold text-gray-700">
                     {voter.name_marathi}
@@ -117,7 +137,7 @@ export default function Page() {
                   </p>
                 </div>
 
-                {/* PRINT VIEW */}
+                {/* Print */}
                 <div className="hidden print:block leading-5">
                   <p><b>नाव:</b> {voter.name_marathi}</p>
                   <p><b>घर क्रमांक:</b> {voter.house_no}</p>
@@ -134,7 +154,7 @@ export default function Page() {
         )}
       </AnimatePresence>
 
-      {/* MODAL */}
+      {/* MODAL (unchanged) */}
       <AnimatePresence>
         {selected && (
           <motion.div
