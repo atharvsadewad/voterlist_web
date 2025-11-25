@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+/* ——— THEME ——— */
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -24,9 +25,53 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ——————————————————————————————————————— */
+/*               FINAL PRINT FIX              */
+/* ——————————————————————————————————————— */
+
 @media print {
+
+  /* Prevent full page printing */
   body {
-    margin: 0;
-    padding: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* PRINT ONLY THE VOTER LIST */
+  #print-area {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 14px !important;
+    padding: 20px !important;
+  }
+
+  /* Each Voter Card */
+  #print-area > div {
+    background: white !important;
+    border: 1px solid black !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+    font-size: 14px !important;
+
+    /* prevent page breaks */
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* HIDE everything else */
+  .print\:hidden,
+  header,
+  nav,
+  footer,
+  .no-print,
+  .modal,
+  .backdrop {
+    display: none !important;
+    visibility: hidden !important;
   }
 }
