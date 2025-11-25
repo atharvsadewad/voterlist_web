@@ -28,7 +28,7 @@ export default function Page() {
       .then((data) => setVoters(data));
   }, []);
 
-  // Manual Search (AFTER button click)
+  // Manual Search (AFTER Search button click)
   const runSearch = () => {
     if (!query.trim()) return setFiltered([]);
 
@@ -41,7 +41,28 @@ export default function Page() {
     setFiltered(results);
   };
 
-  const handlePrint = () => window.print();
+  // 🔥 FIXED PRINT FUNCTION — Only print results, not full page
+  const handlePrint = () => {
+    const printArea = document.getElementById("print-area");
+
+    if (!printArea) return;
+
+    const originalBody = document.body.innerHTML;
+    const printContent = printArea.innerHTML;
+
+    // Replace body with only results area
+    document.body.innerHTML = `
+      <div style="padding: 20px; font-size: 14px;">
+        ${printContent}
+      </div>
+    `;
+
+    window.print();
+
+    // Restore original page
+    document.body.innerHTML = originalBody;
+    window.location.reload();
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 px-6 py-10">
@@ -112,6 +133,7 @@ export default function Page() {
       <AnimatePresence>
         {filtered.length > 0 && (
           <motion.div
+            id="print-area"  // ← ESSENTIAL FOR PRINTING
             layout
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -124,10 +146,8 @@ export default function Page() {
                 className="p-4 bg-white rounded-xl shadow border cursor-pointer 
                            hover:bg-blue-50 transition-all print:shadow-none print:border print:text-sm"
                 onClick={() => setSelected(voter)}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
               >
-                {/* Normal */}
+                {/* Normal display */}
                 <div className="print:hidden">
                   <h2 className="text-lg font-semibold text-gray-700">
                     {voter.name_marathi}
@@ -137,7 +157,7 @@ export default function Page() {
                   </p>
                 </div>
 
-                {/* Print */}
+                {/* PRINT VERSION */}
                 <div className="hidden print:block leading-5">
                   <p><b>नाव:</b> {voter.name_marathi}</p>
                   <p><b>घर क्रमांक:</b> {voter.house_no}</p>
@@ -154,21 +174,15 @@ export default function Page() {
         )}
       </AnimatePresence>
 
-      {/* MODAL (unchanged) */}
+      {/* MODAL */}
       <AnimatePresence>
         {selected && (
           <motion.div
             className="fixed inset-0 bg-black/50 backdrop-blur flex items-center justify-center p-4 z-50 print:hidden"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
             onClick={() => setSelected(null)}
           >
             <motion.div
               className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
             >
               <h2 className="text-2xl font-bold text-gray-800 mb-4">
@@ -195,6 +209,7 @@ export default function Page() {
           </motion.div>
         )}
       </AnimatePresence>
+
     </div>
   );
 }
